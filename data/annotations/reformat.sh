@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-for BED_RAW in *.exons.bed; do
-  CHROM=`basename $BED_RAW | perl -pe 's/(epru...).+/$1/g'`
-  cut -f2-3 $BED_RAW >eucera_pruinosa.$CHROM.exons
+
+for i in {1..23}; do
+  CHROM=epru`printf '%03d' $i`
+  zcat PSU_EPru_1.0_cleaned.annotation.gff.gz | \
+    awk -vchr=$CHROM '!/^#/ && $1 == chr && $3 == "exon" {print $1"\t"$4-1"\t"$5}' | \
+    sort -k1,1 -k2,2n | bedtools merge -i - >eucera_pruinosa.$CHROM.exons
 done
 
 tar czvf ../eucera_pruinosa.annotation.tar.gz eucera_pruinosa.*.exons
 rm eucera_pruinosa.*.exons
-
-cat epru.annotation.gff3.gz >../eucera_pruinosa.annotation.gff3.gz
